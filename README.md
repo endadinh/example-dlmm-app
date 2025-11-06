@@ -5,6 +5,15 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-dev-green)
 
+
+---
+
+> ⚠️ **This project is currently under active development.**  
+> APIs, structures, and behaviors may change frequently without backward compatibility.  
+> Use at your own risk until the first stable release is tagged.
+
+---
+
 > Development environment for [**Saros DLMM SDK**](https://github.com/saros-xyz/saros-dlmm-sdk-rs), combining Axum and Vite web frontend.  
 > Managed with [`just`](https://github.com/casey/just) for clean and reproducible workflows.
 
@@ -45,5 +54,6 @@ This will:
   - Watch and rebuild the web app using Vite.
   - Watch and restart the Rust backend using cargo-watch.
   - Serve built web assets through the Axum server.
+
 
 
