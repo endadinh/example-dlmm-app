@@ -1,0 +1,16 @@
+# Ignore Rust build artifacts
+target
+**/target
+
+# Ignore node_modules and dist
+web/node_modules
+web/dist
+
+# Ignore Git
+.git
+.gitignore
+
+# Ignore system files
+.DS_Store
+*.log
+.env
