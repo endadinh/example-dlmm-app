@@ -50,10 +50,9 @@ pub async fn start_web_server(config: AppConfig) -> Result<()> {
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
     let addr: SocketAddr = format!("0.0.0.0:{}", port).parse().unwrap();
-
     let listener = tokio::net::TcpListener::bind(addr).await?;
     println!("Web server listening on http://{}", addr);
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app.into_make_service()).await?;
 
     Ok(())
 }

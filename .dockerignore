@@ -5,6 +5,7 @@ target
 # Ignore node_modules and dist
 web/node_modules
 web/dist
+web/.vite
 
 # Ignore Git
 .git
