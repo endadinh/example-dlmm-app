@@ -17,10 +17,9 @@ RUN yarn build
 FROM rust:1.85.0 AS builder
 WORKDIR /app
 
-# Cache Cargo deps
+# Cache Cargo deps & prebuild
 COPY Cargo.toml Cargo.lock ./
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-RUN cargo build --release || true
+RUN cargo fetch
 
 # Copy source + built web
 COPY src ./src
