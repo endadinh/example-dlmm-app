@@ -57,11 +57,11 @@ select {
   @apply bg-gray-800/90 text-gray-100 px-3 py-2 rounded-lg border border-gray-700 text-sm font-medium tracking-tight;
 }
 
-.swap-card {
+.box-middle {
   @apply bg-[#13151c]/90 border border-gray-800 rounded-2xl shadow-lg backdrop-blur-md p-6 w-full max-w-md transition-all duration-300;
 }
 
-.swap-card:hover {
+.box-middle:hover {
   box-shadow: 0 0 25px 2px rgba(0, 245, 255, 0.15);
   transform: translateY(-2px);
 }
@@ -159,5 +159,127 @@ footer {
   }
   100% {
     transform: scale(1);
+  }
+}
+
+.text-neon {
+  color: #00ffff;
+  text-shadow: 0 0 6px #00ffff, 0 0 12px #00e0ff;
+}
+
+.bg-neon {
+  background-color: #00ffff;
+  color: #000; /* để chữ nhìn rõ */
+}
+
+.hover\:text-neon:hover {
+  color: #00ffff;
+  text-shadow: 0 0 6px #00ffff;
+}
+
+/* === Tabs container === */
+.tab-bar {
+  @apply flex justify-center gap-4 bg-gray-900/50 border border-gray-800 rounded-xl p-1 mb-6 backdrop-blur-md;
+}
+
+/* === Tab button default === */
+.tab-btn {
+  @apply relative px-4 py-2 text-sm font-medium text-gray-400 rounded-lg transition-all duration-200;
+}
+
+/* === Hover === */
+.tab-btn:hover {
+  @apply text-neon bg-gray-800/60;
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
+}
+
+/* === Active tab === */
+.tab-btn.active {
+  @apply text-black bg-neon;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* === Content === */
+.tab-content {
+  @apply min-h-[200px] text-sm text-gray-300;
+}
+
+/* === Glow Pulse Animation === */
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.9);
+  }
+}
+
+/* === Instruction Tabs (isolated namespace) === */
+.inst-bar {
+  @apply flex justify-center gap-4 bg-[#0b0f17]/80 border border-[#1b1f29] rounded-xl p-1 mb-6 backdrop-blur-md;
+}
+
+/* Default state */
+.inst-btn {
+  @apply relative px-4 py-2 text-sm font-medium text-gray-400 rounded-lg transition-all duration-200;
+  background-color: rgba(30, 35, 45, 0.6);
+}
+
+/* Hover */
+.inst-btn:hover {
+  color: #8be8ff;
+  box-shadow: 0 0 6px rgba(139, 232, 255, 0.4);
+  background-color: rgba(60, 70, 80, 0.5);
+}
+
+/* Active state (new plasma mint-blue tone) */
+.inst-btn.inst-active {
+  color: #001020;
+  background-color: #8be8ff; /* light mint blue */
+  box-shadow: 0 0 16px rgba(139, 232, 255, 0.9);
+  animation: instGlow 2.2s ease-in-out infinite;
+}
+
+/* Instruction content */
+.inst-content {
+  @apply min-h-[200px] text-sm text-gray-300;
+  background: rgba(10, 14, 20, 0.4);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+/* Pulse animation */
+@keyframes instGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(139, 232, 255, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 232, 255, 1);
+  }
+}
+
+.inst-title {
+  @apply text-lg font-semibold mb-4 text-center;
+  background: linear-gradient(90deg, #00e0ff 0%, #8be8ff 50%, #00e0ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 8px rgba(139, 232, 255, 0.6), 0 0 16px rgba(0, 224, 255, 0.4);
+  letter-spacing: 0.5px;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Glow pulse / shimmer animation */
+@keyframes shimmer {
+  0%,
+  100% {
+    text-shadow: 0 0 8px rgba(139, 232, 255, 0.6),
+      0 0 16px rgba(0, 224, 255, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 14px rgba(139, 232, 255, 0.9),
+      0 0 30px rgba(0, 255, 255, 0.8);
   }
 }

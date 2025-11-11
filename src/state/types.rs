@@ -2,6 +2,22 @@ use serde::{Deserialize, Serialize};
 use solana_sdk::pubkey::Pubkey;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Status {
+    #[serde(rename = "ok")]
+    Success,
+    #[serde(rename = "error")]
+    Error,
+    #[serde(rename = "failure")]
+    Failure,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebJsonResponse {
+    pub status: Status,
+    pub message: String,
+    pub data: serde_json::Value,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuoteResponse {
     pub in_amount: u64,
     pub out_amount: u64,

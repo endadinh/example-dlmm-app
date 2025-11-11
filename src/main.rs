@@ -22,24 +22,33 @@ async fn main() -> anyhow::Result<()> {
     match cli.command {
         Commands::Start { web } => {
             info!("🚀 Starting Saros DLMM Interface...");
+            let mut config = app::AppConfig::default();
 
-            let rpc_url = dotenv::var("RPC_URL")
-                .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string());
+            if let Ok(rpc_url) = dotenv::var("RPC_URL") {
+                info!("Using RPC URL from .env: {}", rpc_url);
+                config.rpc_url = rpc_url;
+            }
 
-            let cache_ttl_secs: u64 = dotenv::var("CACHE_TTL_SECS")
-                .unwrap_or_else(|_| "15".to_string())
-                .parse()
-                .unwrap_or(15);
+            if let Ok(pool_ttl_secs) = dotenv::var("POOL_CACHE_TTL_SECS") {
+                if let Ok(pool_ttl) = pool_ttl_secs.parse::<u64>() {
+                    info!("Using Pool Cache TTL from .env: {} seconds", pool_ttl);
+                    config.cache_ttl.pool_ttl = Duration::from_secs(pool_ttl);
+                }
+            }
 
-            let config = app::AppConfig {
-                rpc_url,
-                cache_ttl: app::TTLConfig {
-                    pool_ttl: Duration::from_secs(cache_ttl_secs),
-                    token_ttl: Duration::from_secs(3600),
-                    bin_ttl: Duration::from_secs(10),
-                },
-            };
+            if let Ok(token_ttl_secs) = dotenv::var("TOKEN_CACHE_TTL_SECS") {
+                if let Ok(token_ttl) = token_ttl_secs.parse::<u64>() {
+                    info!("Using Token Cache TTL from .env: {} seconds", token_ttl);
+                    config.cache_ttl.token_ttl = Duration::from_secs(token_ttl);
+                }
+            }
 
+            if let Ok(bin_ttl_secs) = dotenv::var("BIN_CACHE_TTL_SECS") {
+                if let Ok(bin_ttl) = bin_ttl_secs.parse::<u64>() {
+                    info!("Using Bin Cache TTL from .env: {} seconds", bin_ttl);
+                    config.cache_ttl.bin_ttl = Duration::from_secs(bin_ttl);
+                }
+            }
             if web {
                 web::start_web_server(config).await?;
             } else {

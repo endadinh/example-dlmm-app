@@ -16,7 +16,7 @@ use tower_http::{
 
 use crate::{
     app::{AppConfig, AppContext},
-    state::QuoteRequest,
+    state::{QuoteRequest, Status, WebJsonResponse},
 };
 use anyhow::Result;
 
@@ -67,10 +67,14 @@ async fn ping() -> &'static str {
 async fn get_pair(
     State(ctx): State<Arc<AppContext>>,
     Query(params): Query<HashMap<String, String>>,
-) -> Json<serde_json::Value> {
+) -> Json<WebJsonResponse> {
     let pair_address = params.get("address").cloned().unwrap_or_default();
     if pair_address.len() < 20 {
-        return Json(json!({ "error": "Invalid address format" }));
+        return Json(WebJsonResponse {
+            status: Status::Error,
+            message: "Invalid address format".to_string(),
+            data: json!({}),
+        });
     }
 
     let pair_key = Pubkey::from_str_const(&pair_address);
@@ -79,38 +83,57 @@ async fn get_pair(
     let dlmm_client = match ctx.get_or_spawn_client(pair_key).await {
         Ok(client) => client,
         Err(e) => {
-            return Json(json!({ "error": format!("Failed to get DLMM client: {}", e) }));
+            return Json(WebJsonResponse {
+                status: Status::Error,
+                message: format!("Failed to get DLMM client: {}", e),
+                data: json!({}),
+            });
         }
     };
 
     info!("🔍 Fetching metadata from RPC for pair {}", pair_address);
-
     let saros_dlmm = dlmm_client.saros_dlmm.read().await;
 
     let [mint_a_meta, mint_b_meta] = match ctx.fetch_pair_token_info(&saros_dlmm).await {
         Ok(mints) => mints,
         Err(e) => {
-            return Json(json!({ "error": format!("Failed to get token info: {}", e) }));
+            return Json(WebJsonResponse {
+                status: Status::Error,
+                message: format!("Failed to fetch token metadata: {}", e),
+                data: json!({}),
+            });
         }
     };
 
-    Json(json!({
-        "status": "ok",
-        "token_a": { "symbol": mint_a_meta.symbol, "mint": mint_a_meta.mint.to_string(), "decimals": mint_a_meta.decimals },
-        "token_b": { "symbol": mint_b_meta.symbol, "mint": mint_b_meta.mint.to_string(), "decimals": mint_b_meta.decimals },
-        "pool_id": pair_address
-    }))
+    Json(WebJsonResponse {
+        status: Status::Success,
+        message: "Pair fetched successfully".to_string(),
+        data: json!({
+            "pair_address": pair_address,
+            "token_mint_x": saros_dlmm.pair.token_mint_x.to_string(),
+            "token_mint_y": saros_dlmm.pair.token_mint_y.to_string(),
+            "token_a": {
+                "mint": mint_a_meta.mint.to_string(),
+                "symbol": mint_a_meta.symbol,
+                "decimals": mint_a_meta.decimals,
+            },
+            "token_b": {
+                "mint": mint_b_meta.mint.to_string(),
+                "symbol": mint_b_meta.symbol,
+                "decimals": mint_b_meta.decimals,
+            },
+        }),
+    })
 }
 
 #[axum::debug_handler]
 async fn get_quote(
     State(ctx): State<Arc<AppContext>>,
     Json(body): Json<QuoteRequest>,
-) -> Json<serde_json::Value> {
+) -> Json<WebJsonResponse> {
     let pair_address = body.pair_address.clone();
 
     info!("🔍 Getting quote for pair {}", pair_address);
-
     info!("Body: {:?}", body);
 
     let source_mint = Pubkey::from_str_const(&body.source_mint);
@@ -123,7 +146,11 @@ async fn get_quote(
     {
         Ok(client) => client,
         Err(e) => {
-            return Json(json!({ "error": format!("Failed to get DLMM client: {}", e) }));
+            return Json(WebJsonResponse {
+                status: Status::Error,
+                message: format!("Failed to get DLMM client: {}", e),
+                data: json!({}),
+            });
         }
     };
 
@@ -134,11 +161,9 @@ async fn get_quote(
     );
 
     for _ in 0..3 {
-        {
-            if let Err(e) = dlmm_client.update(&ctx).await {
-                tracing::warn!("⚠️ Failed to update DLMM client: {}", e);
-                continue;
-            }
+        if let Err(e) = dlmm_client.update(&ctx).await {
+            tracing::warn!("⚠️ Failed to update DLMM client: {}", e);
+            continue;
         }
     }
 
@@ -169,17 +194,21 @@ async fn get_quote(
 
     // 2️⃣ call get_quote() from DLMM client
     let result = match client.quote(&req) {
-        Ok(quote) => Json(json!({
-            "status": "ok",
-            "pair": pair_address,
-            "input": body.source_mint,
-            "output": body.source_mint,
-            "in_amount": quote.in_amount,
-            "out_amount": quote.out_amount,
-            "fee_amount": quote.fee_amount,
-            "fee_mint": quote.fee_mint.to_string()
-        })),
-        Err(e) => Json(json!({ "status": "error", "message": e.to_string() })),
+        Ok(quote) => Json(WebJsonResponse {
+            status: Status::Success,
+            message: "quote successful".to_string(),
+            data: json!({
+                "in_amount": quote.in_amount,
+                "out_amount": quote.out_amount,
+                "fee_amount": quote.fee_amount,
+                "fee_mint": quote.fee_mint.to_string(),
+            }),
+        }),
+        Err(e) => Json(WebJsonResponse {
+            status: Status::Error,
+            message: format!("Failed to get quote: {}", e),
+            data: json!({}),
+        }),
     };
 
     result
@@ -188,7 +217,7 @@ async fn get_quote(
 async fn simulate_swap(
     State(_ctx): State<Arc<AppContext>>,
     Json(body): Json<serde_json::Value>,
-) -> Json<serde_json::Value> {
+) -> Json<WebJsonResponse> {
     let pool_id = body
         .get("pool_id")
         .and_then(|v| v.as_str())
@@ -206,5 +235,9 @@ async fn simulate_swap(
         // "simulation": simulation
     });
 
-    Json(json!({ "result": result }))
+    Json(WebJsonResponse {
+        status: Status::Success,
+        message: result.to_string(),
+        data: result,
+    })
 }

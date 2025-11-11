@@ -30,9 +30,9 @@ impl Default for AppConfig {
         AppConfig {
             rpc_url: "https://api.mainnet-beta.solana.com".to_string(),
             cache_ttl: TTLConfig {
-                pool_ttl: Duration::from_secs(60),
-                token_ttl: Duration::from_secs(3600),
-                bin_ttl: Duration::from_secs(10),
+                pool_ttl: Duration::from_secs(15),     // 15 seconds
+                token_ttl: Duration::from_secs(43200), // 12 hours
+                bin_ttl: Duration::from_secs(15),      // 15 seconds
             },
         }
     }
@@ -117,7 +117,6 @@ impl AppContext {
         }
 
         info!("Spawning new DLMMClient for pool: {:?}", pool_key);
-
         let pair_account = State::generate_keyed_account(self.rpc_client.clone(), pool_key).await?;
         cached_pools.insert(pool_key, Cached::new(pair_account.clone()));
 

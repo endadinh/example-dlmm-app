@@ -24,6 +24,14 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
+      extend: {
+        colors: {
+          neon: '#00ffff',
+        },
+        boxShadow: {
+          glow: '0 0 10px rgba(0, 255, 255, 0.7)',
+        },
+      },
     },
   },
   plugins: [],
